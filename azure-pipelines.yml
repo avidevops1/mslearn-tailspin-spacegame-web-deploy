@@ -133,7 +133,7 @@ stages:
   - deployment: Deploy
     pool:
       vmImage: 'ubuntu-18.04'
-    environment: Prod
+    environment: Production
     variables:
     - group: 'Release'
     strategy:
