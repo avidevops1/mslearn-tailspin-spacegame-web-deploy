@@ -3,6 +3,15 @@ trigger:
 
 variables:
   buildConfiguration: 'Release'
+  releaseBranchName: 'release'
+
+schedules:
+- cron: '0 3 * * *'
+  displayName: Deploy every day at 3 A.M.
+  branches:
+    include:
+    - release
+  always: false 
 
 stages:
 - stage: 'Build'
@@ -65,9 +74,15 @@ stages:
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: drop
 
-- stage: 'Deploy'
-  displayName: 'Deploy the web application'
+- stage: 'Dev'
+  displayName: 'Deploy to the dev environment'
   dependsOn: Build
+  condition: |
+    and
+    (
+      succeeded(),
+      eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
+    )
   jobs:
   - deployment: Deploy
     pool:
@@ -87,6 +102,7 @@ stages:
               azureSubscription: 'Multistage'
               appName: '$(WebAppNameDev)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
 - stage: 'Test'
   displayName: 'Deploy to the test environment'
   dependsOn: Dev
